@@ -1,12 +1,24 @@
 .PHONY:	mythtv/mythtv mythtv/mythplugins myththemes nuvexport mythweb
-.PHONY: force backgrounds
+.PHONY: force backgrounds scripts
 
-SUBDIRS = mythtv/mythtv mythtv/mythplugins myththemes #nuvexport
+HOST=${shell hostname | sed -e 's/\..*$$//'}
+
+SUBDIRS-mythfe = myththemes
+SUBDIRS-devel  = myththemes
+SUBDIRS-fitpc  = myththemes
+
+SUBDIRS  = mythtv/mythtv mythtv/mythplugins
+SUBDIRS += ${SUBDIRS-${HOST}}
+
+EXTRA-mythfe = backgrounds
+EXTRA-devel  = backgrounds
+EXTRA-fitpc  = backgrounds
+EXTRA = ${EXTRA-${HOST}}
 
 all clean patch-clean patch-remove:
 	gmake do-$@ ${MAKEOPTS}
 
-do-all:	${SUBDIRS} backgrounds
+do-all:	${SUBDIRS} ${EXTRA}
 
 do-clean:	force
 	-for i in ${SUBDIRS} ; do ${MAKE} -C $$i distclean ; done
@@ -21,11 +33,10 @@ do-patch-remove: force
 	    -prune -o \( -name \*.patch -exec rm {} \; \)
 
 BRANCH=${shell git branch | sed -e '/^[^\*]/d' -e 's/^\* //' -e 's/(no branch)/testing/'}
-HOST=${shell hostname | sed -e 's/\..*$$//'}
 
 THREADS-mythbe	             = -j 9
 THREADS-mythfe	             = -j 3
-THREADS-mythtv	             = -j 2
+THREADS-devel	             = -j 2
 
 CONFIG-mythtv-fitpc          = --enable-vaapi
 
@@ -70,6 +81,9 @@ nuvexport:
 mythweb:
 	sudo rsync -avCt mythweb/ /var/www/mythweb/
 	sudo chown -R www-data.www-data /var/www/mythweb/
+
+scripts:
+	sudo rsync -avCt scripts/ /usr/local/bin/
 
 # WARNING: disabling Python bindings; missing MySQLdb
 # WARNING: disabling Python bindings; missing lxml
