@@ -1,0 +1,9 @@
+This is designed to make my builds of MythTV for development work well, and
+sanely.
+
+The branch name here (usually will be only local on my machines) will be used
+to generate the install prefix, allowing multiple versions to coexist on my
+machines
+
+The various MythTV repositories are expected to be checked out below this
+directory.
