@@ -1,0 +1,25 @@
+#! /bin/bash
+ARGS="--force --file"
+export ARGS
+
+source /usr/local/bin/myth.inc
+get_prefix $*
+
+mysql --user=mythtv --password=mythtv mythconverg << EOF
+UPDATE settings SET data='1' WHERE value='CommFlagFast';
+EOF
+
+${PREFIX}/bin/mythcommflag ${ARGS}
+${PREFIX}/bin/mythcommflag ${ARGS} --getskiplist 
+
+mysql --user=mythtv --password=mythtv mythconverg << EOF
+UPDATE settings SET data='0' WHERE value='CommFlagFast';
+EOF
+
+${PREFIX}/bin/mythcommflag ${ARGS}
+${PREFIX}/bin/mythcommflag ${ARGS} --getskiplist 
+
+mysql --user=mythtv --password=mythtv mythconverg << EOF
+UPDATE settings SET data='1' WHERE value='CommFlagFast';
+EOF
+
