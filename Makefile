@@ -68,7 +68,7 @@ CONFIG-mythplugins  += --compile-type=debug
 CONFIG-mythplugins  += ${CONFIG-mythtvplugins-${HOST}}
 
 mythtv/mythtv myththemes mythtv/mythplugins:
-	(cd $@ ; ./configure ${CONFIG-${@*/%%}})
+	(cd $@ ; ./configure ${CONFIG-$(notdir $@)})
 	${MAKE} ${THREADS-${HOST}} -C $@
 	sudo ${MAKE} -C $@ install
 
