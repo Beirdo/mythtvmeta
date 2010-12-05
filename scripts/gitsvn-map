@@ -1,0 +1,95 @@
+#! /usr/bin/perl
+# vim:ts=4:sw=4:ai:et:si:sts=4
+
+use warnings;
+use strict;
+
+sub get_log
+{
+    my $branch = shift;
+    my $loghash = {};
+
+    print "Capturing $branch\n";
+
+    open GIT, "git log --grep=git-svn-id $branch |";
+
+    my $log;
+    {
+        local $/;
+        $log = <GIT>;
+    }
+    close GIT;
+
+    while (($log =~ /commit ([\da-f]{40})\n.*?\n\s*git-svn-id:.*?@(\d+)\s*/sg)) 
+    {
+        my $sha = $1;
+        my $svnid = $2;
+        $loghash->{$sha} = $svnid;
+    }
+
+    return $loghash;
+}
+
+sub get_branches
+{
+    my $branches = [];
+
+    print "Getting branches\n";
+
+    open GIT, "git branch -r | grep origin | grep -v HEAD |";
+    my $data;
+    {
+        local $/;
+        $data = <GIT>;
+    }
+    close GIT;
+
+    while (($data =~ /^[ *]\s(.*?)$/msg))
+    {
+        my $branch = $1;
+        print "Branch: $branch\n";
+        push @$branches, $branch;
+    }
+    print "\n\n";
+    return $branches;
+}
+
+sub dump_logs
+{
+    my ($logs, $branch, $fh, $seen ) = @_;
+
+    my $br = $branch;
+    $br =~ s/^origin\///;
+
+    print "Outputting $branch\n";
+    
+    foreach my $rec ( keys %{$logs->{$branch}} ) {
+        if (not exists $seen->{$rec}) {
+            $seen->{$rec} = $logs->{$branch}->{$rec};
+            print $fh "$br,$rec,$logs->{$branch}->{$rec}\n";
+        }
+    }
+}
+
+my $branches = get_branches();
+my %logs;
+
+foreach my $branch (@$branches) {
+    $logs{$branch} = get_log($branch);
+}
+
+my $seen = {};
+
+open my $fh, ">", "revs.csv";
+print $fh "branch,sha1,svn\n";
+dump_logs( \%logs, "origin/master", $fh, $seen );
+
+@$branches = grep(!/^origin\/master$/, @$branches);
+
+foreach my $branch (@$branches) {
+    dump_logs( \%logs, $branch, $fh, $seen );
+}
+
+close $fh;
+1;
+
