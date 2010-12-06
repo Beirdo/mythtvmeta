@@ -56,7 +56,7 @@ sub get_branches
 
 sub dump_logs
 {
-    my ($logs, $branch, $fh, $seen ) = @_;
+    my ($logs, $repo, $branch, $fh, $seen ) = @_;
 
     my $br = $branch;
     $br =~ s/^origin\///;
@@ -66,10 +66,12 @@ sub dump_logs
     foreach my $rec ( keys %{$logs->{$branch}} ) {
         if (not exists $seen->{$rec}) {
             $seen->{$rec} = $logs->{$branch}->{$rec};
-            print $fh "$br,$rec,$logs->{$branch}->{$rec}\n";
+            print $fh "$repo,$br,$rec,$logs->{$branch}->{$rec}\n";
         }
     }
 }
+
+my $repo = shift;
 
 my $branches = get_branches();
 my %logs;
@@ -81,13 +83,13 @@ foreach my $branch (@$branches) {
 my $seen = {};
 
 open my $fh, ">", "revs.csv";
-print $fh "branch,sha1,svn\n";
-dump_logs( \%logs, "origin/master", $fh, $seen );
+print $fh "repo,branch,sha1,svn\n";
+dump_logs( \%logs, $repo, "origin/master", $fh, $seen );
 
 @$branches = grep(!/^origin\/master$/, @$branches);
 
 foreach my $branch (@$branches) {
-    dump_logs( \%logs, $branch, $fh, $seen );
+    dump_logs( \%logs, $repo, $branch, $fh, $seen );
 }
 
 close $fh;
