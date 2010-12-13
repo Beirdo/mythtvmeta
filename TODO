@@ -1,0 +1,2 @@
+- add --fifo-audio-only and --fifo-video-only to mythtranscode
+- make mythtranscode stop writing to bad fifos.  Give up already!
