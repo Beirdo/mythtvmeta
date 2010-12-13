@@ -57,6 +57,7 @@ CONFIG-mythtv        = --prefix=${PREFIX}
 CONFIG-mythtv       += --compile-type=debug
 CONFIG-mythtv       += --enable-symbol-visibility
 CONFIG-mythtv       += --perl-config-opts="${PERLOPTS}"
+CONFIG-mythtv       += --enable-libmp3lame --enable-libxvid
 CONFIG-mythtv       += ${CONFIG-mythtv-${HOST}}
 
 CONFIG-myththemes    = --prefix=${PREFIX}
@@ -98,6 +99,7 @@ scripts:
 # Core and bindings
 DEBS  = python-mysqldb python-lxml libdbi-perl libdbd-mysql-perl 
 DEBS += libnet-upnp-perl mysql-server mysql-client libmysqlclient-dev
+DEBS += libxvidcore-dev
 # Mythmusic
 DEBS += libflac-dev libcdaudio-dev libcdparanoia-dev libtag1-dev 
 # Mythgallery
