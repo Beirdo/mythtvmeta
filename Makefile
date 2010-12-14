@@ -108,7 +108,7 @@ DEBS += libexif-dev dcraw icc-profiles
 DEBS += libdate-manip-perl libxml-simple-perl libimage-size-perl
 DEBS += libdatetime-format-iso8601-perl libsoap-lite-perl libxml-xpath-perl
 # Mythnetvision
-DEBS += python-oauth
+DEBS += python-oauth python-pycurl
 # JAMU
 DEBS += python-imaging python-imdbpy
 # nuvexport
