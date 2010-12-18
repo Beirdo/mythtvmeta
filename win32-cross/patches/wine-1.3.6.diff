@@ -1,0 +1,16 @@
+--- include/dsound.h	2010-10-29 19:42:36.000000000 +0200
++++ include/dsound.h	2010-11-12 14:07:40.000000000 +0100
+@@ -27,6 +27,13 @@
+ #include <objbase.h>
+ #include <float.h>
+ 
++#ifdef UNICODE
++# define WINELIB_NAME_AW(func) func##W
++#else
++# define WINELIB_NAME_AW(func) func##A
++#endif
++#define DECL_WINELIB_TYPE_AW(type)  typedef WINELIB_NAME_AW(type) type;
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif /* defined(__cplusplus) */

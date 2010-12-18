@@ -1,0 +1,198 @@
+#!/bin/sh -e
+
+#wget http://www.softsystem.co.uk/download/mythtv/win32-patches.tar.bz2
+#tar -jxf win32-patches.tar.bz2
+
+set -v
+DIR=`pwd`
+export DIR
+
+mkdir -p $DIR/archive
+mkdir -p $DIR/build
+
+# Set the pkg-config default directory
+mkdir -p $DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$DIR/lib/pkgconfig
+
+# Patch done indicator
+patched="patch1.softsystem.co.uk"
+
+# Configure done indicator
+stamp="stamp.softsystem.co.uk"
+
+# Install zlib - http://www.zlib.net/
+cd $DIR
+lib=zlib-1.2.5.tar.gz
+[ ! -e archive/$lib ] && wget http://mesh.dl.sourceforge.net/project/libpng/zlib/1.2.5/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d zlib-1.2.5 ] && tar -zxf $DIR/archive/$lib
+cd zlib-1.2.5
+make -f win32/Makefile.gcc PREFIX=i586-mingw32msvc-
+make -f win32/Makefile.gcc INCLUDE_PATH=$DIR/include LIBRARY_PATH=$DIR/lib install
+
+# Install freetype - http://savannah.nongnu.org/projects/freetype/
+cd $DIR
+lib=freetype-2.4.3.tar.gz
+[ ! -e archive/$lib ] && wget http://downloads.sourceforge.net/project/freetype/freetype2/2.4.3/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d freetype-2.4.3 ] && tar -zxf $DIR/archive/$lib
+cd freetype-2.4.3
+[ ! -e $stamp ] && ./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu && touch $stamp
+make
+make install
+
+# Install lame - http://lame.sourceforge.net/index.php
+cd $DIR
+lib=lame-3.98.4.tar.gz
+[ ! -e archive/$lib ] && wget http://garr.dl.sourceforge.net/project/lame/lame/3.98.4/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d lame-3.98.4 ] && tar -zxf $DIR/archive/$lib
+cd lame-3.98.4
+[ ! -e $stamp ] && ./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu && touch $stamp
+make
+make install
+
+# Install pthread - http://sourceware.org/pthreads-win32/
+cd $DIR
+lib=pthreads-w32-2-8-0-release.tar.gz
+[ ! -e archive/$lib ] && wget ftp://sourceware.org/pub/pthreads-win32/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d pthreads-w32-2-8-0-release ] && tar -zxf $DIR/archive/$lib
+cd pthreads-w32-2-8-0-release
+[ ! -e $patched ] && patch -p1 < $DIR/patches/pthreads-w32-2-8-0-release.diff && touch $patched
+make -f GNUmakefile CROSS=i586-mingw32msvc- clean GC
+cp -p libpthreadGC2.a $DIR/lib/libpthread.a
+cp -p pthreadGC2.dll $DIR/bin/
+cp -p pthread.h sched.h semaphore.h $DIR/include/
+
+# DirectX - http://msdn.microsoft.com/en-us/directx/
+cd $DIR
+lib=wine-1.3.6.tar.bz2
+[ ! -e archive/$lib ] && wget http://switch.dl.sourceforge.net/project/wine/Source/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d wine-1.3.6 ] && tar -jxf $DIR/archive/$lib
+cp -p wine-1.3.6/include/dsound.h $DIR/include/
+cd $DIR
+patch -p0 < $DIR/patches/wine-1.3.6.diff
+
+# Install libexif - http://libexif.sourceforge.net/
+cd $DIR
+lib=libexif-0.6.19.tar.bz2
+[ ! -e archive/$lib ] && wget http://mesh.dl.sourceforge.net/project/libexif/libexif/0.6.19/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d libexif-0.6.19 ] && tar -jxf $DIR/archive/$lib
+cd libexif-0.6.19
+[ ! -e Makefile ] && ./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make
+make install
+
+# Install libogg - http://www.xiph.org/ogg/
+cd $DIR
+lib=libogg-1.2.1.tar.bz2
+[ ! -e archive/$lib ] && wget http://downloads.xiph.org/releases/ogg/$lib -O arcive/$lib
+cd $DIR/build
+[ ! -d libogg-1.2.1 ] && tar -jxf $DIR/archive/$lib
+cd libogg-1.2.1
+[ ! -e Makefile ] && ./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make
+make install
+
+# Install libvorbis - http://www.xiph.org/vorbis/
+cd $DIR
+lib=libvorbis-1.3.2.tar.bz2
+[ ! -e archive/$lib ] && wget http://downloads.xiph.org/releases/vorbis/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d libvorbis-1.3.2 ] && tar -jxf $DIR/archive/$lib
+cd libvorbis-1.3.2
+[ ! -e $stamp ] && ./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu && touch $stamp
+make
+make install
+
+# Install flac - http://flac.sourceforge.net/
+cd $DIR
+lib=flac-1.2.1.tar.gz
+[ ! -e archive/$lib ] && wget http://mesh.dl.sourceforge.net/project/flac/flac-src/flac-1.2.1-src/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d flac-1.2.1 ] && tar -zxf $DIR/archive/$lib
+cd flac-1.2.1
+[ ! -e $patched ] && patch -p1 < $DIR/patches/flac-1.2.1.diff && touch $patched
+[ ! -e $stamp ] && ./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu && touch $stamp
+make
+make install
+
+# Install taglib - http://freshmeat.net/projects/taglib
+cd $DIR
+lib=taglib-1.5.tar.gz
+[ ! -e archive/$lib ] && wget http://developer.kde.org/~wheeler/files/src/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d taglib-1.5 ] && tar -zxf $DIR/archive/$lib
+cd taglib-1.5
+[ ! -e $stamp ] && CXXFLAGS=-DMAKE_TAGLIB_LIB ./configure \
+ --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu && touch $stamp
+make
+make install
+
+# Install MySQL - http://mysql.com/
+cd $DIR
+lib=mysql-noinstall-5.0.89-win32.zip
+MYSQL=$DIR/build/mysql-5.0.89-win32
+[ ! -e archive/$lib ] && wget ftp://mirrors.ircam.fr/pub/mysql/Downloads/MySQL-5.0/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d $MYSQL ] && unzip -a $DIR/archive/$lib
+cd $MYSQL
+[ ! -e $patched ] && patch -p1 < $DIR/patches/mysql-5.0.89-win32.diff && touch $patched
+
+# Install Qt - http://get.qt.nokia.com/
+cd $DIR
+lib=qt-everywhere-opensource-src-4.7.0.tar.gz
+[ ! -e archive/$lib ] && wget http://get.qt.nokia.com/qt/source/$lib -O archive/$lib
+cd $DIR/build
+[ ! -d qt-everywhere-opensource-src-4.7.0 ] && tar -zxf $DIR/archive/$lib
+cd qt-everywhere-opensource-src-4.7.0
+[ ! -e $patched ] && patch -p1 < $DIR/patches/qt-4.7.0.diff && touch $patched
+[ ! -e $stamp ] && ./configure -opensource -confirm-license \
+  -prefix $DIR -xplatform win32-g++linux -fast -make "libs" -no-phonon \
+  -no-sql-sqlite -no-sql-odbc -plugin-sql-mysql -I $MYSQL/include -L \
+  $MYSQL/lib/opt -mysql_config true -no-reduce-exports && touch $stamp
+make
+make install
+cp -p bin/qmake $DIR/bin/
+
+exit 0
+
+# Install MythTV - http://www.mythtv.org/
+cd $DIR
+lib=mythtv-0.24.tar.bz2
+[ ! -e $lib ] && wget ftp://ftp.osuosl.org/pub/mythtv/$lib
+[ ! -d mythtv-0.24 ] && tar -jxf $lib
+cd mythtv-0.24
+[ ! -e $patched ] && patch -p1 < ../mythtv-0.24.diff && touch $patched
+[ ! -e $stamp ] && PATH=$DIR/bin:$PATH ./configure \
+  --prefix=$DIR --enable-cross-compile --cross-prefix=i586-mingw32msvc- \
+  --target_os=mingw32 --arch=x86 --cpu=pentium3 --sysinclude=$DIR/include \
+  --extra-cflags=-I$DIR/include --extra-ldflags=-L$DIR/lib \
+  --qmake=$DIR/bin/qmake --disable-lirc --disable-hdhomerun \
+  --disable-firewire --disable-iptv && touch $stamp
+make
+make install
+
+# Install MythPlugins - http://www.mythtv.org/
+cd $DIR
+lib=mythplugins-0.24.tar.bz2
+[ ! -e $lib ] && wget ftp://ftp.osuosl.org/pub/mythtv/$lib
+[ ! -d mythplugins-0.24 ] && tar -jxf $lib
+cd mythplugins-0.24
+[ ! -e $patched ] && patch -p1 < ../mythplugins-0.24.diff && touch $patched
+[ ! -e $stamp ] && PATH=$DIR/bin:$PATH ./configure \
+  --prefix=$DIR --sysroot=$DIR --cross-prefix=i586-mingw32msvc- \
+  --targetos=MINGW32 --qmake=$DIR/bin/qmake --enable-all \
+  --disable-mytharchive --disable-mythnews --disable-mythweather \
+  --disable-mythzoneminder --disable-mythnetvision --disable-sdl \
+  --disable-dcraw && touch $stamp
+make
+make install
+
+# Create the Windows installation
+$DIR/mkinstall.sh
+
+echo "Finished!!"

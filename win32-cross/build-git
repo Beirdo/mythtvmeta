@@ -1,0 +1,33 @@
+#!/bin/sh -e
+
+set -v
+DIR=`pwd`
+export DIR
+echo $DIR
+
+# Set the pkg-config default directory
+mkdir -p $DIR/lib/pkgconfig
+export PKG_CONFIG_PATH=$DIR/lib/pkgconfig
+export PATH=$DIR/bin:$PATH
+
+cd $DIR/mythtv-git
+git pull origin mythsystem-rewrite
+cd mythtv
+./configure \
+  --prefix=$DIR --enable-cross-compile --cross-prefix=i586-mingw32msvc- \
+  --target_os=mingw32 --arch=x86 --cpu=pentium3 --sysinclude=$DIR/include \
+  --extra-cflags=-I$DIR/include --extra-ldflags=-L$DIR/lib \
+  --qmake=$DIR/bin/qmake --disable-lirc --disable-hdhomerun \
+  --disable-firewire --disable-iptv
+make
+make install
+
+cd $DIR/mythtv-git/mythplugins
+./configure \
+  --prefix=$DIR --cross-prefix=i586-mingw32msvc- \
+  --targetos=MINGW32 --qmake=$DIR/bin/qmake --enable-all \
+  --disable-mytharchive --disable-mythnews --disable-mythweather \
+  --disable-mythzoneminder --disable-mythnetvision --disable-sdl \
+  --disable-dcraw --disable-mythmusic
+make
+make install

@@ -1,0 +1,557 @@
+CROSS COMPILE MYTHTV FOR WINDOWS FROM LINUX
+===========================================
+
+By Lawrence Rust <lvr at softsystem dot co dot uk>
+http://www.softsystem.co.uk/mythtv
+
+INTRODUCTION
+
+I use MythTV on several Linux (Ubuntu 10.04 and 10.10) boxes on a home
+network.  After a while of using Ubuntu's pre-packaged distribution I
+came up against problems and limitations that decided me on the path to
+building MythTV from sources and adding my own patches.
+
+As time moved on, the need for a Myth front-end on a Windows
+box became apparent - evangelical enthusiasm isn't enough
+to convert everyone :-).  There are pre-packed Windows
+installations (http://members.iinet.net.au/~davco) but they
+didn't allow me to add my own patches.  There is a wiki page
+(http://www.mythtv.org/wiki/Windows_Port) on building MythTV on a Windows
+box, but nothing on cross compiling.  So this is the result.
+
+REQUIREMENTS
+
+There's a lot of compiling to do so you'll need a fast, fat Linux box:
+
+- At least 10 GB free space on a fast disk.
+- At least 2 GB, preferably 4 GB memory.
+- A recent multi-core CPU; or lots of patience.
+- A fast internet connection >= 2 MB/s.
+
+In summary, you'll need to install a recent mingw32 compiler followed
+by downloading a bunch of libraries, patching and compiling them in turn.
+
+You'll need to be happy with the Linux command line, the C/C++ language,
+make and shell scripts.
+
+PROCEDURE
+
+This procedure was correct for MythTV 0.24, released on 11 Nov 2010.
+
+Cross compilation starts with building the cross compiler; in this
+case gcc.  Gcc is well equipped for cross compilation, there being many
+target systems to choose from in the distributed sources.  Fortunately
+many have trodden this path before and there already exists the mingw
+compiler (http://www.mingw.org).
+
+Mingw is a gcc compiler and runtime libraries primarily used to
+build native Windows apps on a Windows host but can also be used to
+cross compile.  Some Linux distributions, like Ubuntu, provide packaged
+versions of the compiler.  So the first significant step is to install
+mingw.  But first you'll need to download some scripts and patches.
+
+Create the build folder
+-----------------------
+
+mkdir mythtv-w32 && cd mythtv-w32
+
+Download the build script and patches
+-------------------------------------
+
+It is recommended that you download the build script and patch set.
+This will automate and hence accelerate the build process.  If you want
+to edit the files manually then you can use the '.diff' files as a guide
+to making the necessary changes.  All the changes are essential - the
+build will fail and you will waste time if you do not apply them all.
+If you haven't done so already, download this archive:
+
+wget http://www.softsystem.co.uk/download/mythtv/win32-patches.tar.bz2
+tar -jxf win32-patches.tar.bz2
+
+Install the Mingw C/C++ compiler
+--------------------------------
+
+On an Ubuntu or Debian system at a command prompt type:
+
+sudo apt-get install mingw32
+
+The current mingw32 distribution (4.2.1) has an error in the float.h
+system header which results in some missing FPU control calls while
+compiling the Qt library.  This bug was reported in January 2010 to Nokia
+here:
+
+http://bugreports.qt.nokia.com/browse/QTBUG-7576
+
+and in June 2010 to the Mingw bug tracker here:
+
+http://sourceforge.net/tracker/?func=detail&atid=302435&aid=3011968&group_id=2435
+
+Unfortunately the issue is still unresolved so pragmatically it needs a patch:
+
+sudo patch -p0 < mingw-4.2.1.diff
+
+This needs to be done as root since the files are read only for other users.
+If you want to do this manually edit /usr/i586-mingw32msvc/include/float.h
+remove the line: #include_next<float.h>
+save the file and edit
+/usr/lib/gcc/i586-mingw32msvc/4.2.1-sjlj/include/float.h
+and add at the top of the file: #include_next<float.h>
+
+Compiler cache and compiler farming
+-----------------------------------
+
+Because of the volume of files to be compiled it is recommended that
+the compiler cache (ccache) is installed.  If you have several networked
+systems then compiler farming (distcc) can be beneficial.
+
+On an Ubuntu or Debian system at a command prompt type:
+
+sudo apt-get install ccache
+sudo apt-get install distcc
+
+The reader is referred to 'man ccache' and 'man distcc' for configuration
+and operational guides.
+
+USING THE BUILD SCRIPT
+======================
+
+This is the easy way, just run the build script:
+
+./buildall
+
+Or if you have a multi-core system then you can speed things up by typing:
+
+MAKEFLAGS=-j5 nice ./buildall
+
+Where the integer after the 'j' is 1+ the number cores in your system.  If it
+all built OK skip to 'Create the Windows installation'.
+
+All the libraries will be downloaded and built.  The likelihood though
+is that some URL will have changed or be offline or some library will
+be updated and will fail to build.  But it works today and hopefully
+documents the steps.
+
+STEP BY STEP GUIDE
+==================
+
+First some automation:
+
+export DIR=$PWD
+
+-----------------------------------
+Install zlib - http://www.zlib.net/
+-----------------------------------
+
+cd $DIR
+wget http://mesh.dl.sourceforge.net/project/libpng/zlib/1.2.5/zlib-1.2.5.tar.gz
+tar -zxf zlib-1.2.5.tar.gz && cd zlib-1.2.5
+make -f win32/Makefile.gcc PREFIX=i586-mingw32msvc-
+make -f win32/Makefile.gcc INCLUDE_PATH=$DIR/include LIBRARY_PATH=$DIR/lib install
+
+----------------------------------------------------------------
+Install freetype - http://savannah.nongnu.org/projects/freetype/
+----------------------------------------------------------------
+
+cd $DIR
+wget http://download.savannah.gnu.org/releases/freetype/freetype-2.4.3.tar.gz
+tar -zxf freetype-2.4.3.tar.gz && cd freetype-2.4.3
+./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make && make install
+
+----------------------------------------------------
+Install lame - http://lame.sourceforge.net/index.php
+----------------------------------------------------
+
+cd $DIR
+wget http://garr.dl.sourceforge.net/project/lame/lame/3.98.4/lame-3.98.4.tar.gz
+tar -zxf lame-3.98.4.tar.gz && cd lame-3.98.4
+./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make && make install
+
+-------------------------------------------------------
+Install pthread - http://sourceware.org/pthreads-win32/
+-------------------------------------------------------
+
+cd $DIR
+wget ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-8-0-release.tar.gz
+tar -zxf pthreads-w32-2-8-0-release.tar.gz && cd pthreads-w32-2-8-0-release
+
+Pthread needs a small patch to compile with MythTV:
+
+patch -p1 < ../pthreads-w32-2-8-0-release.diff
+
+This problem was first reported in 2008 and there's a fix in the cvs repo
+apparently. See:
+http://sourceware.org/ml/pthreads-win32/2008/msg00051.html
+
+make -f GNUmakefile CROSS=i586-mingw32msvc- clean GC
+cp -p libpthreadGC2.a $DIR/lib/libpthread.a
+cp -p pthreadGC2.dll $DIR/bin/
+cp -p pthread.h sched.h semaphore.h $DIR/include/
+
+--------------------------------------------------
+DirectX - http://msdn.microsoft.com/en-us/directx/
+--------------------------------------------------
+
+MythTV needs the DirectX 9 dsound.h header which is missing from mingw32.
+A useful alternative is the wine (www.winehq.org) project:
+
+cd $DIR
+wget http://switch.dl.sourceforge.net/project/wine/Source/wine-1.3.6.tar.bz2
+tar -jxf wine-1.3.6.tar.bz2
+cp -p wine-1.3.6/include/dsound.h include/
+
+The file dsound.h needs a small patch because it depends upon some
+wine macros:
+
+patch -p0 < wine-1.3.6.diff
+
+Aside: The old DirectX 8 SDK for MinGW can be downloaded from here:
+wget http://alleg.sourceforge.net/files/dx80_mgw.zip
+
+dsound.h can then be used as-is by:
+
+unzip -d dx80 dx80_mgw.zip
+cp -p dx80/include/dsound.h include/
+
+However, I recommend using the wine version because it's DirectX 9 compatible
+and that's what MythTV expects.
+
+-------------------------------------------------
+Install libexif - http://libexif.sourceforge.net/
+-------------------------------------------------
+
+This is needed only by the mythgallery plugin
+
+cd $DIR
+wget http://mesh.dl.sourceforge.net/project/libexif/libexif/0.6.19/libexif-0.6.19.tar.bz2
+tar -jxf libexif-0.6.19.tar.bz2 && cd libexif-0.6.19
+./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make && make install
+
+-----------------------------------------
+Install libogg - http://www.xiph.org/ogg/
+-----------------------------------------
+
+This is needed only by the mythmusic plugin
+
+cd $DIR
+wget http://downloads.xiph.org/releases/ogg/libogg-1.2.1.tar.bz2
+tar -jxf libogg-1.2.1.tar.bz2 && cd libogg-1.2.1
+./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make && make install
+
+----------------------------------------------
+Install libvorbis - http://www.xiph.org/vorbis/
+----------------------------------------------
+
+This is needed only by the mythmusic plugin
+
+cd $DIR
+wget http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.2.tar.bz2
+tar -jxf libvorbis-1.3.2.tar.bz2 && cd libvorbis-1.3.2
+./configure --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+PKG_CONFIG_PATH=$DIR/lib/pkgconfig ./configure --prefix=$DIR \
+ --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make && make install
+
+-------------------------------------------
+Install flac - http://flac.sourceforge.net/
+-------------------------------------------
+
+This is needed only by the mythmusic plugin
+
+cd $DIR
+wget http://mesh.dl.sourceforge.net/project/flac/flac-src/flac-1.2.1-src/flac-1.2.1.tar.gz
+tar -zxf flac-1.2.1.tar.gz && cd flac-1.2.1
+
+Fix include/share/alloc.h for mingw32 gcc 4.2.1-sjlj
+
+patch -p1 < ../flac-1.2.1.diff
+
+This bug was reported to the flac bug-tracker in January 2010 but still
+remains unresolved:
+http://sourceforge.net/tracker/index.php?func=detail&aid=2938991&group_id=13478&atid=113478
+
+PKG_CONFIG_PATH=$DIR/lib/pkgconfig ./configure --prefix=$DIR \
+  --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make && make install
+
+-----------------------------------------------------
+Install taglib - http://freshmeat.net/projects/taglib
+-----------------------------------------------------
+
+This is only needed by the mythmusic plugin
+
+cd $DIR
+wget http://developer.kde.org/~wheeler/files/src/taglib-1.5.tar.gz
+tar -zxf taglib-1.5.tar.gz && cd taglib-1.5
+CXXFLAGS=-DMAKE_TAGLIB_LIB PKG_CONFIG_PATH=$DIR/lib/pkgconfig ./configure \
+  --prefix=$DIR --host=i586-mingw32msvc --build=i686-pc-linux-gnu
+make && make install
+
+---------------------------------
+Install MySQL - http://mysql.com/
+---------------------------------
+
+The pre-built MySQL for Win32 can be downloaded directly:
+
+cd $DIR
+wget ftp://mirrors.ircam.fr/pub/mysql/Downloads/MySQL-5.0/mysql-noinstall-5.0.89-win32.zip
+unzip -a mysql-noinstall-5.0.89-win32.zip
+MYSQL=$DIR/mysql-5.0.89-win32
+
+Fix include/mysql.h to compile with mingw32
+
+cd $MYSQL
+patch -p1 < ../mysql-5.0.89-win32.diff
+
+-------------------------------------
+Install Qt - http://get.qt.nokia.com/
+-------------------------------------
+
+Qt is a _BIG_ package and will take some time to configure and build.
+
+cd $DIR
+wget http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.0.tar.gz
+tar -zxf qt-everywhere-opensource-src-4.7.0.tar.gz && \
+  cd qt-everywhere-opensource-src-4.7.0
+
+Apply patches:
+ - Fix qmake to build plugins with mingw and distclean linker scripts
+ - Fix configure to detect the mysql lib
+ - Add mkspecs for cross compilation
+ - Fix unresolved symbols in textcodecs for win32
+patch -p1 < ../qt-4.7.0.diff
+
+This patch has been submitted to Nokia for consideration:
+http://bugreports.qt.nokia.com/browse/QTBUG-15316
+
+Configure the build:
+
+./configure -opensource \
+  -prefix $DIR -xplatform win32-g++linux -fast -make "libs" -no-phonon \
+  -no-sql-sqlite -no-sql-odbc -plugin-sql-mysql -I $MYSQL/include -L \
+  $MYSQL/lib/opt -mysql_config true -no-reduce-exports
+
+Build Qt.  This can take some time:
+
+make && make install && cp -p bin/qmake $DIR/bin/
+
+Note that we copy qmake to the bin directory to use it in the mythtv build.
+
+---------------------------------------
+Install MythTV - http://www.mythtv.org/
+---------------------------------------
+
+cd $DIR
+wget ftp://ftp.osuosl.org/pub/mythtv/mythtv-0.24.tar.bz2
+tar -jxf mythtv-0.24.tar.bz2 && cd mythtv-0.24
+
+Apply a patch to fix DirectX3d9 and OpenGL video playback:
+
+patch  -p1 < ../mythtv-0.24.diff
+
+Configure MythTV:
+
+PKG_CONFIG_PATH=$DIR/lib/pkgconfig PATH=$DIR/bin:$PATH ./configure \
+  --prefix=$DIR --enable-cross-compile --cross-prefix=i586-mingw32msvc- \
+  --target_os=mingw32 --arch=x86 --cpu=pentium3 --sysinclude=$DIR/include \
+  --extra-cflags=-I$DIR/include --extra-ldflags=-L$DIR/lib \
+  --qmake=$DIR/bin/qmake --disable-lirc --disable-hdhomerun \
+  --disable-firewire --disable-iptv
+
+Carefully note from the configure output that qmake is set to
+$DIR/bin/qmake.  Now do the build:
+
+make && make install
+
+--------------------------------------------
+Install MythPlugins - http://www.mythtv.org/
+--------------------------------------------
+
+cd $DIR
+wget ftp://ftp.osuosl.org/pub/mythtv/mythplugins-0.24.tar.bz2
+tar -jxf mythplugins-0.24.tar.bz2 && cd mythplugins-0.24
+
+Apply a patch to the configure script to fix cross compilation and to fix
+mythmusic and mythgallery operation on Windows.
+
+patch -p1 < ../mythplugins-0.24.diff
+
+Configure the plugins:
+
+PKG_CONFIG_PATH=$DIR/lib/pkgconfig PATH=$DIR/bin:$PATH ./configure \
+  --prefix=$DIR --sysroot=$DIR --cross-prefix=i586-mingw32msvc- \
+  --targetos=MINGW32 --qmake=$DIR/bin/qmake --enable-all \
+  --disable-mytharchive --disable-mythnews --disable-mythweather \
+  --disable-mythzoneminder --disable-mythnetvision --disable-sdl \
+  --disable-dcraw
+
+NB some plugins are disabled because:
+- mythnews, mythweather & mythnetvision require a debug build of Qt and
+  we only produced a release one.
+- mythzoneminder needs the Linux header <sys/shm.h>
+- mytharchive requires the POSIX kill() function
+
+make && make install
+
+-------------------------------
+Create the Windows installation
+-------------------------------
+
+cd $DIR; ./mkinstall.sh
+
+This will create the folder 'install' and copy into it all the files
+necessary to run MythTV.  Just copy this folder to a Windows box...
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! CELEBRATION - WE'RE DONE !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+MySQL server
+============
+
+It may be desirable, for instance during testing, to install the MySQL
+database and backend on the Windows box.  This will limit damage to your
+precious live database.
+
+Open internet explorer and download:
+
+ftp://mirrors.ircam.fr/pub/mysql/Downloads/MySQL-5.0/mysql-essential-5.0.89-win32.msi
+
+NB the latest 5.5.5 release is available here:
+ftp://mirrors.ircam.fr/pub/mysql/Downloads/MySQL-5.5/mysql-essential-5.5.5-m3-win32.msi
+
+However, it won't run on anything older than WinXP-SP2 because of
+unresolved functions imported from ws2_32.dll.
+
+Double click the downloaded installer file.
+
+IMPORTANT - during installation select "Detailed configuration" and ensure
+to disable "Strict mode" otherwise certain MythTV SQL transactions will
+fail and the database will not be updated to the latest schema.
+
+At a command prompt, create the database and
+set user:password to mythtv:mythtv
+
+C:\>"\Program Files\MySQL\MySQL Server 5.0\bin\mysql.exe" -u root -p
+Enter password: ********
+drop database if exists mythtest;
+create database mythtest;
+GRANT ALL ON mythtest.* TO mythtv@localhost IDENTIFIED BY "mythtv";
+FLUSH PRIVILEGES;
+GRANT CREATE TEMPORARY TABLES ON mythtest.* TO mythtv@localhost IDENTIFIED BY "mythtv";
+FLUSH PRIVILEGES;
+GRANT ALL ON mythtest.* TO mythtv@"%" IDENTIFIED BY "mythtv";
+FLUSH PRIVILEGES;
+ALTER DATABASE mythtest DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+quit
+
+Running MythTV on Windows
+=========================
+
+Copy the contents of install to a Windows host, e.g. c:\mythtv.
+Then open notepad and create the file mythfe.bat:
+
+@set MYTHTVDIR=C:\mythtv
+: Windowed mode. For 16:9 try 1024x576 or 1280x720
+@set OPTW=-w -geometry 800x600
+: Force a Qt display painter if OpenGL or Direct3D crash
+@rem set OPTQT=-O ThemePainter=qt
+%MYTHTVDIR%\mythfrontend %OPTW% %OPTQT% %1 %2 %3 %4 %5 %6 %7 %8 %9
+
+NB MythTV's settings are by default saved in: in
+%HOMEDRIVE%%HOMEPATH%\.mythtv (typically c:\Documents and
+Settings\<username>\.mythtv) but this can be changed by setting MYTHCONFDIR
+
+Start mythfrontend from a command prompt:
+
+mythfe -p
+
+The -p option forces a manual database configuration:
+- Ensure that 'Ping test server' is disabled.
+- When using the local MySQL server, set the database to mythtest.
+
+When the MythTV GUI is displayed, ensure to choose 'settings'. I found it
+necessary to go though most of the settings pages and re-enter sensible
+values before everything worked.  Most of the changes have no effect
+until you exit and restart mythfrontend.
+
+What works:
+
+- UI Painter using Qt and OpenGL.
+- Sound, best with DirectX.
+- Video and TV playback work OK with Direct3D & OpenGL
+- mythmusic
+- mythgallery
+- mythtv-setup
+
+What doesn't work:
+
+- UI Painter using Direct3D crashes.
+
+Untested: mythbackend
+
+Running MythTV with Wine - http://www.winehq.org/
+=================================================
+
+On Debian & Ubuntu, wine (current version 1.3.6) can be installed by:
+
+sudo apt-get install wine1.3
+
+From the build directory, start mythfrontend using the script provided:
+
+./wine-mythfrontend -p
+
+!! IMPORTANT !!
+Add the -p option for the first run only to force a database configuration:
+1. Set LocalHostName otherwise you will overwrite your current Linux settings.
+2. Disable database server ping.
+3. You may experience a crash after confirming the database setup.  Don't
+   worry, re-enter ./wine-mythfrontend without the '-p' and all will be OK.
+
+NB mythfrontend will save its database settings in ./mythconf
+
+When the MythTV GUI is displayed, ensure to choose 'settings'. I found it
+necessary to go though most of the settings pages and re-enter sensible
+values before everything worked.  Most of the changes have no effect
+until you exit and restart mythfrontend.
+
+What works:
+
+- UI Painter using Qt, OpenGL and Direct3D
+- Sound, best with DirectX.
+- Video and TV playback work OK with Direct3D & OpenGL
+- mythmusic
+- mythgallery
+
+What doesn't work:
+
+- Occasional random crashes.
+
+Running MythTV on VirtualBox
+============================
+
+On Debian & Ubuntu, VirtualBox (current version 3.2.10) can be installed by:
+
+sudo apt-get install virtualbox-3.2
+
+See "Running MythTV on Windows" above.
+
+What works:
+
+- UI Painter using Qt and OpenGL.
+- Sound, best with DirectX.
+- Video and TV playback work OK with OpenGL
+- mythmusic
+- mythgallery
+
+What doesn't work:
+
+- Live TV or video with Direct3D.
+- UI Painter using Direct3D crashes.
+- UPnP seems broken
+
+Untested: mythbackend, mythtv-setup
+

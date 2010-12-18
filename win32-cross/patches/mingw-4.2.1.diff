@@ -1,0 +1,22 @@
+--- /usr/i586-mingw32msvc/include/float.h	2009-06-30 10:32:33.000000000 +0200
++++ /usr/i586-mingw32msvc/include/float.h	2010-11-03 22:55:07.000000000 +0100
+@@ -16,7 +16,7 @@
+  *
+  */
+ 
+-#include_next<float.h>
++
+ 
+ #ifndef _MINGW_FLOAT_H_
+ #define _MINGW_FLOAT_H_
+--- /usr/lib/gcc/i586-mingw32msvc/4.2.1-sjlj/include/float.h	2010-01-03 02:57:35.000000000 +0100
++++ /usr/lib/gcc/i586-mingw32msvc/4.2.1-sjlj/include/float.h	2010-01-03 02:57:35.000000000 +0100
+@@ -27,6 +27,7 @@
+ /*
+  * ISO C Standard:  5.2.4.2.2  Characteristics of floating types <float.h>
+  */
++#include_next<float.h>
+ 
+ #ifndef _FLOAT_H___
+ #define _FLOAT_H___
+

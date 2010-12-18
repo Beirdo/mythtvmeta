@@ -1,0 +1,12 @@
+diff -uprN mysql-5.0.89-win32.orig/include/mysql.h mysql-5.0.89-win32/include/mysql.h
+--- mysql-5.0.89-win32.orig/include/mysql.h	2009-12-09 16:52:33.000000000 +0100
++++ mysql-5.0.89-win32/include/mysql.h	2010-11-10 14:06:05.000000000 +0100
+@@ -45,7 +45,7 @@ extern "C" {
+ 
+ #ifndef _global_h				/* If not standard header */
+ #include <sys/types.h>
+-#ifdef __LCC__
++#if defined __LCC__ || defined __MINGW32__
+ #include <winsock.h>				/* For windows */
+ #endif
+ typedef char my_bool;
