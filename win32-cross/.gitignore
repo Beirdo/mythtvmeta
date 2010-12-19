@@ -2,6 +2,7 @@ bin
 build
 imports
 include
+install
 lib
 man
 mkspecs

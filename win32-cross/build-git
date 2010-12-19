@@ -14,6 +14,7 @@ cd $DIR/mythtv-git
 git pull origin mythsystem-rewrite
 cd mythtv
 ./configure \
+  --compile-type=debug \
   --prefix=$DIR --enable-cross-compile --cross-prefix=i586-mingw32msvc- \
   --target_os=mingw32 --arch=x86 --cpu=pentium3 --sysinclude=$DIR/include \
   --extra-cflags=-I$DIR/include --extra-ldflags=-L$DIR/lib \
@@ -24,6 +25,7 @@ make install
 
 cd $DIR/mythtv-git/mythplugins
 ./configure \
+  --compile-type=debug \
   --prefix=$DIR --cross-prefix=i586-mingw32msvc- \
   --targetos=MINGW32 --qmake=$DIR/bin/qmake --enable-all \
   --disable-mytharchive --disable-mythnews --disable-mythweather \

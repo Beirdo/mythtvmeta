@@ -150,7 +150,7 @@ cd $DIR/build
 [ ! -d qt-everywhere-opensource-src-4.7.0 ] && tar -zxf $DIR/archive/$lib
 cd qt-everywhere-opensource-src-4.7.0
 [ ! -e $patched ] && patch -p1 < $DIR/patches/qt-4.7.0.diff && touch $patched
-[ ! -e $stamp ] && ./configure -opensource -confirm-license \
+[ ! -e $stamp ] && ./configure -opensource -confirm-license -debug \
   -prefix $DIR -xplatform win32-g++linux -fast -make "libs" -no-phonon \
   -no-sql-sqlite -no-sql-odbc -plugin-sql-mysql -I $MYSQL/include -L \
   $MYSQL/lib/opt -mysql_config true -no-reduce-exports && touch $stamp
