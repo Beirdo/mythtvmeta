@@ -1,0 +1,10 @@
+# HDPVR -> /dev/video-hdpvr0
+KERNEL=="video[0-9]*", ATTRS{idVendor}=="2040", ATTRS{idProduct}=="4902", ATTRS{serial}=="00A43B12", SYMLINK+="video-hdpvr0"
+
+# HVR-2250 tuner 1 -> /dev/video-hvr0
+KERNEL=="video[0-9]*", ATTRS{vendor}=="0x1131", ATTRS{device}=="0x7164", ATTRS{subsystem_vendor}=="0x0070", ATTRS{subsystem_device}=="0x8891", ATTR{index}=="0", SYMLINK+="video-hvr0"
+KERNEL=="vbi[0-9]*", ATTRS{vendor}=="0x1131", ATTRS{device}=="0x7164", ATTRS{subsystem_vendor}=="0x0070", ATTRS{subsystem_device}=="0x8891", ATTR{index}=="2", SYMLINK+="vbi-hvr0"
+
+# HVR-2250 tuner 2 -> /dev/video-hvr1
+KERNEL=="video[0-9]*", ATTRS{vendor}=="0x1131", ATTRS{device}=="0x7164", ATTRS{subsystem_vendor}=="0x0070", ATTRS{subsystem_device}=="0x8891", ATTR{index}=="1", SYMLINK+="video-hvr1"
+KERNEL=="vbi[0-9]*", ATTRS{vendor}=="0x1131", ATTRS{device}=="0x7164", ATTRS{subsystem_vendor}=="0x0070", ATTRS{subsystem_device}=="0x8891", ATTR{index}=="3", SYMLINK+="vbi-hvr1"

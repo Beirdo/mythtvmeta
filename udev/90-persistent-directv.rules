@@ -1,0 +1,9 @@
+# USB -> ttyUSB-directv0 (HD)
+KERNEL=="ttyUSB[0-9]*", DRIVERS=="pl2303", KERNELS=="5-1:1.0", SYMLINK+="ttyUSB-directv0"
+
+# USB -> ttyUSB-directv1 (Std #1)
+KERNEL=="ttyUSB[0-9]*", DRIVERS=="pl2303", KERNELS=="5-2:1.0", SYMLINK+="ttyUSB-directv1"
+
+# USB -> ttyUSB-directv2 (Std #2)
+KERNEL=="ttyUSB[0-9]*", DRIVERS=="pl2303", KERNELS=="8-2:1.0", SYMLINK+="ttyUSB-directv2"
+
