@@ -46,7 +46,6 @@ if ($retval ne 0)
         usleep $timeout;
     }
 }
-die "Channel change failure\n\n" if $retval ne 0;
 
 $tuned = get_my_channel( $command );
 
