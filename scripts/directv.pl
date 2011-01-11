@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2009 Josh Wilmes,  Dave Manaloto, John Gruenenfelder,
+# Copyright (c) 2010 Josh Wilmes,  Dave Manaloto, John Gruenenfelder,
 # David Gesswein
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -85,6 +85,11 @@
 #	For H20 and D11 -Mac OS X a usb to serial adapter at both ends works.
 #
 # Version 1.9 Added setup_channel_sd_hd
+#
+# Version 1.10 Added nonblocking open so if serial ports are set to use
+#   hardware status lines the port can still be opened
+#   modem_manager leaves port in wrong state on Fedora systems.
+#   Also added different return code for excessive retries with F5 status
 
 $|=1;
 use POSIX qw(:termios_h);
@@ -92,7 +97,7 @@ use Time::HiRes qw(usleep ualarm gettimeofday tv_interval );
 
 use FileHandle;
 
-$version = "1.9";
+$version = "1.10";
 
 #
 # Verbose output, change with verbose and quiet command.
@@ -143,6 +148,9 @@ $sd_hd_signal_delay = .2;
              "0xF4" => "END PKT",
              "0xF5" => "ERR 2",
              "0xFB" => "PROMPT");
+
+# command failed with 0xf5
+$fail_error = 0;
 
 # -1 is command had error, 1 is command completed ok
 %terminal=("0xF1" => -1,
@@ -560,7 +568,13 @@ sub dss_command {
        sysread($serial,$buf,100);
        #print STDERR "Retry " , scalar localtime(time()) , "\n";
     }
-    die "Error excessive retries\n";
+    if ($fail_error) {
+       warn "Error excessive retries, fail error returned\n";
+       exit(2);
+    } else {
+       warn "Error excessive retries\n";
+       exit(1);
+    }
 } 
 
 # Send channel change command or remote key pushes to change channel
@@ -632,6 +646,7 @@ sub map_code() {
 # are passed back without examination then look for error or ok status.
 # Pass back any other bytes not part of status also.
 sub get_reply() {
+    $fail_error = 0;
     my ($reply_size) = @_;
     #my $starttime=time();
     my $starttime=[gettimeofday];
@@ -669,6 +684,9 @@ sub get_reply() {
        
        if ($found_start && $reply_size-- <= 0) {
           $ok=1 if ($terminal{$str} > 0);
+          if ($str eq "0xF5") {
+             $fail_error = 1;
+          }
           last if ($terminal{$str});
           last if ($last eq "0xFB" && $str eq "0xFB");
        }
@@ -687,7 +705,7 @@ sub init_serial {
     my($termios,$cflag,$lflag,$iflag,$oflag);
     my($voice);
  
-    my $serial=new FileHandle("+>$port") || die "Could not open $port: $!\n";
+    my $serial=new FileHandle("$port", O_RDWR | O_NONBLOCK) || die "Could not open $port: $!\n";
     
     binmode($serial);
 
@@ -727,5 +745,8 @@ sub init_serial {
     $termios->setcc(VTIME,2);
     $termios->setattr($serial->fileno(),TCSANOW) || die "setattr: $!\n";
     
+    my $flags = fcntl($serial, F_GETFL, 0) || die "fcntl F_GETFL $!\n"; # Get the current flags on the filehandle
+    fcntl($serial, F_SETFL, $flags & ~O_NONBLOCK) || die "fcntl F_SETFL $!\n"; # Set the flags on the filehandle
+
     return $serial;
 }
