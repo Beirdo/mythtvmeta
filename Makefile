@@ -113,6 +113,8 @@ DEBS += python-oauth python-pycurl perlmagick
 DEBS += python-imaging python-imdbpy
 # nuvexport
 DEBS += libid3-3.8.3-dev
+# Doxygen
+DEBS += doxygen
 
 apt-get:	force
 	sudo apt-get build-dep mythtv
