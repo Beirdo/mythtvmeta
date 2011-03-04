@@ -107,8 +107,10 @@ DEBS += libexif-dev dcraw icc-profiles
 # Mythweather scripts
 DEBS += libdate-manip-perl libxml-simple-perl libimage-size-perl
 DEBS += libdatetime-format-iso8601-perl libsoap-lite-perl libxml-xpath-perl
+# HardwareProfile
+DEBS += hal python-urlgrabber
 # Mythnetvision
-DEBS += python-oauth python-pycurl perlmagick python-urlgrabber
+DEBS += python-oauth python-pycurl perlmagick
 # JAMU
 DEBS += python-imaging python-imdbpy
 # nuvexport
