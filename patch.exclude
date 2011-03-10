@@ -1,0 +1,3 @@
+./mythtv/docs/doxygen.perl.patch
+./packaging/rpm/mythtv/mythplugins-0.21-svnfixes.patch
+./packaging/rpm/mythtv/mythtv-0.21-svnfixes.patch
