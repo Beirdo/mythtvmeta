@@ -99,7 +99,7 @@ scripts:
 # Core and bindings
 DEBS  = python-mysqldb python-lxml libdbi-perl libdbd-mysql-perl 
 DEBS += libnet-upnp-perl mysql-server mysql-client libmysqlclient-dev
-DEBS += libxvidcore-dev libsdl-dev
+DEBS += libxvidcore-dev libsdl-dev libxml2-dev
 # Mythmusic
 DEBS += libflac-dev libcdaudio-dev libcdparanoia-dev libtag1-dev 
 # Mythgallery
@@ -117,6 +117,8 @@ DEBS += python-imaging python-imdbpy
 DEBS += libid3-3.8.3-dev
 # Doxygen
 DEBS += doxygen
+# mythffmpegg
+DEBS += libx264-dev 
 
 apt-get:	force
 	sudo apt-get build-dep mythtv
