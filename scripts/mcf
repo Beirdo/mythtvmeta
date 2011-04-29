@@ -1,4 +1,4 @@
 #! /bin/bash
 source /usr/local/bin/myth.inc
 get_prefix $*
-${PREFIX}/bin/mythcommflag ${ARGS}
+${PREFIX}/bin/mythcommflag -l ${LOGPATH} ${ARGS}

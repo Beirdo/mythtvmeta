@@ -12,20 +12,21 @@ function get_prefix () {
 
     if [ .${BRANCH}. = .. ] ; then
         PREFIX=/usr/local
-        LOG=/opt/mythtv/logs/${PROGNAME}.log
-	VALLOG=/opt/mythtv/logs/valgrind-${PROGNAME}.log
+        LOGPATH=/opt/mythtv/logs/notag
     else
         PREFIX=/opt/mythtv/${BRANCH}
-        LOG=/opt/mythtv/logs/${PROGNAME}-${BRANCH}.log
-	VALLOG=/opt/mythtv/logs/valgrind-${PROGNAME}-${BRANCH}.log
+        LOGPATH=/opt/mythtv/logs/${BRANCH}
     fi
+    VALLOG=${LOGPATH}/valgrind-${PROGNAME}.log
 
     ARGS="${ARGS} $*"
 
     echo Program: ${PROGNAME}
     echo using prefix ${PREFIX}
     echo using arguments ${ARGS}
-    echo using logfile ${LOG}
+    echo using logpath ${LOGPATH}
+
+    mkdir -p ${LOGPATH}
 
     PYTHONPATH=${PREFIX}/lib/python2.6/site-packages
     PERL5LIB=${PREFIX}/share/perl/5.10.1
