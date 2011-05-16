@@ -38,6 +38,12 @@ THREADS-mythbe	             = -j 9
 THREADS-mythfe	             = -j 3
 THREADS-devel	             = -j 2
 
+CONFIG-mythtv-mythfe         = --enable-libmp3lame --enable-libxvid 
+CONFIG-mythtv-mythfe        += --enable-libx264
+
+CONFIG-mythtv-mythbe         = --enable-libmp3lame --enable-libxvid 
+CONFIG-mythtv-mythbe        += --enable-libx264
+
 CONFIG-mythtv-fitpc          = --enable-vaapi
 
 CONFIG-mythtv-freebsd        = --extra-cflags=-I/usr/local/include
@@ -57,7 +63,6 @@ CONFIG-mythtv        = --prefix=${PREFIX}
 CONFIG-mythtv       += --compile-type=debug
 CONFIG-mythtv       += --enable-symbol-visibility
 CONFIG-mythtv       += --perl-config-opts="${PERLOPTS}"
-CONFIG-mythtv       += --enable-libmp3lame --enable-libxvid --enable-libx264
 CONFIG-mythtv       += ${CONFIG-mythtv-${HOST}}
 
 CONFIG-myththemes    = --prefix=${PREFIX}
