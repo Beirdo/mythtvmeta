@@ -87,6 +87,7 @@ nuvexport:
 mythweb:
 	sudo rsync -avCt mythweb/ /var/www/mythweb/
 	sudo chown -R www-data.www-data /var/www/mythweb/
+	(cd /opt/mythtv ; sudo ln -sf ${BRANCH} mythweb)
 
 scripts:
 	sudo rsync -avCt scripts/ /usr/local/bin/
