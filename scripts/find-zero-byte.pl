@@ -7,7 +7,10 @@ use lib '/opt/mythtv/new-logging/share/perl/5.10.1';
 
 use MythTV;
 
-my @hdpvrs = ( 32 );
+# Fill in this hash with cardid => serial number for each HDPVR, power device
+# pair.  If a zero-byte file is detected from any device in here, its power 
+# will be turned off for 15s, then back on
+my %hdpvrs = ( 32 => "GHUD9O5F" );
 
 my $Myth = new MythTV();
 
@@ -72,8 +75,8 @@ sub no_recording
 {
     my ($cardid, $chanid, $starttime) = @_;
 
-    my $re = qr{^$cardid$};
-    my $ishdpvr = grep $re, @hdpvrs;
+    my $ishdpvr = exists $hdpvrs{$cardid};
+
     print "No recording for channel $chanid at $starttime\n";
     print "Recording " . ($ishdpvr ? "" : "not ") . "from HD-PVR.\n";
 }
@@ -82,10 +85,16 @@ sub zero_byte
 {
     my ($cardid, $chanid, $starttime) = @_;
 
-    my $re = qr{^$cardid$};
-    my $ishdpvr = grep $re, @hdpvrs;
+    my $ishdpvr = exists $hdpvrs{$cardid};
+
     print "Zero byte recording for channel $chanid at $starttime\n";
     print "Recording " . ($ishdpvr ? "" : "not ") . "from HD-PVR.\n";
+
+    if ( $ishdpvr )
+    {
+        my @command = ( "hdpvr-power", $hdpvrs{$cardid}, "cycle" );
+        system @command;
+    }
 }
 
 # vim:ts=4:sw=4:ai:et:si:sts=4
