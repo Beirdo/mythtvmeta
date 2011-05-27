@@ -2,4 +2,4 @@
 source /usr/local/bin/myth.inc
 get_prefix $*
 
-${PREFIX}/bin/mythtranscode ${LOGPATH} ${ARGS} 
+${PREFIX}/bin/mythtranscode -l ${LOGPATH} ${ARGS} 
