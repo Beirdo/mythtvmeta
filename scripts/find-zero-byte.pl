@@ -79,6 +79,12 @@ sub no_recording
 
     print "No recording for channel $chanid at $starttime\n";
     print "Recording " . ($ishdpvr ? "" : "not ") . "from HD-PVR.\n";
+
+    if ( $ishdpvr )
+    {
+        my @command = ( "hdpvr-power", $hdpvrs{$cardid}, "cycle" );
+        system @command;
+    }
 }
 
 sub zero_byte
