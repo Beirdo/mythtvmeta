@@ -2,7 +2,7 @@
 gdb -c core -se /opt/mythtv/$1/bin/$2 2>&1 << EOF | tee /tmp/gdbc-$1-$2.$$.txt
 set pagination off
 bt
-thread apply all bt
+thread apply all bt full
 quit
 EOF
 
