@@ -32,7 +32,7 @@ do-patch-remove: force
 	find . -name \*.patch \( -exec egrep {} patch.exclude \; \) \
 	    -prune -o \( -name \*.patch -exec rm {} \; \)
 
-BRANCH=${shell git branch | sed -e '/^[^\*]/d' -e 's/^\* //' -e 's/(no branch)/testing/'}
+BRANCH=${shell cd mythtv ; git branch | sed -e '/^[^\*]/d' -e 's/^\* //' -e 's/(no branch)/testing/'}
 
 THREADS-mythbe	             = -j 9
 THREADS-mythfe	             = -j 3
