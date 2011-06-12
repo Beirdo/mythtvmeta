@@ -1,2 +1,2 @@
 #!/bin/sh
-`git grep -l "$1" | xargs echo vim`
+`git grep -l -I "$1" | egrep '\.(c|(cpp)|h)$' | xargs echo vim`
