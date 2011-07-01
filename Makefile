@@ -89,6 +89,9 @@ mythweb:
 	sudo chown -R www-data.www-data /var/www/mythweb/
 	(cd /opt/mythtv ; sudo ln -sf ${BRANCH} mythweb)
 
+update:
+	(cd mythtv ; git pull)
+
 scripts:
 	sudo rsync -avCt scripts/ /usr/local/bin/
 
