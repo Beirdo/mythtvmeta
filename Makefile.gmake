@@ -1,0 +1,132 @@
+.PHONY:	mythtv/mythtv mythtv/mythplugins myththemes nuvexport mythweb
+.PHONY: force backgrounds scripts
+
+HOST=${shell hostname | sed -e 's/\..*$$//'}
+
+SUBDIRS-mythfe = myththemes
+SUBDIRS-devel  = myththemes
+SUBDIRS-fitpc  = myththemes
+
+SUBDIRS  = mythtv/mythtv mythtv/mythplugins
+SUBDIRS += ${SUBDIRS-${HOST}}
+
+EXTRA-mythfe = backgrounds
+EXTRA-devel  = backgrounds
+EXTRA-fitpc  = backgrounds
+EXTRA = ${EXTRA-${HOST}}
+
+do-all:	${SUBDIRS} ${EXTRA}
+
+do-clean:	force
+	-for i in ${SUBDIRS} ; do ${MAKE} -C $$i distclean ; done
+
+do-patch-clean:	force
+	find . -name \*.rej -exec rm {} \;
+	find . -name \*.orig -exec rm {} \;
+
+do-patch-remove: force
+	find . -name \*.diff -exec rm {} \;
+	find . -name \*.patch \( -exec egrep {} patch.exclude \; \) \
+	    -prune -o \( -name \*.patch -exec rm {} \; \)
+
+BRANCH=${shell cd mythtv ; git branch | sed -e '/^[^\*]/d' -e 's/^\* //' -e 's/(no branch)/testing/' -e 's/\//-/'}
+
+THREADS-mythbe	             = -j 9
+THREADS-mythfe	             = -j 3
+THREADS-freebsd	             = -j 3
+THREADS-devel	             = -j 2
+
+CONFIG-mythtv-mythfe         = --enable-libmp3lame --enable-libxvid 
+CONFIG-mythtv-mythfe        += --enable-libx264
+
+CONFIG-mythtv-mythbe         = --enable-libmp3lame --enable-libxvid 
+CONFIG-mythtv-mythbe        += --enable-libx264
+
+CONFIG-mythtv-fitpc          = --enable-vaapi
+
+CONFIG-mythtv-freebsd        = --extra-cflags=-I/usr/local/include
+CONFIG-mythtv-freebsd       += --extra-ldflags=-I/usr/local/lib
+CONFIG-mythplugins-freebsd   = --extra-cflags=-I/usr/local/include
+CONFIG-mythplugins-freebsd  += --extra-ldflags=-I/usr/local/lib
+
+
+
+PREFIX               = /opt/mythtv/${BRANCH}
+
+PERLOPTS             = PREFIX=${PREFIX}
+#PERLOPTS            += SITELIBEXP=${PREFIX}/share/perl/5.10.1
+#PERLOPTS            += SITEARCHEXP=${PREFIX}/lib/perl/5.10.1
+
+CONFIG-mythtv        = --prefix=${PREFIX}
+CONFIG-mythtv       += --compile-type=debug
+CONFIG-mythtv       += --enable-symbol-visibility
+CONFIG-mythtv       += --perl-config-opts="${PERLOPTS}"
+CONFIG-mythtv       += ${CONFIG-mythtv-${HOST}}
+
+CONFIG-myththemes    = --prefix=${PREFIX}
+CONFIG-myththemes   += --compile-type=debug
+
+CONFIG-mythplugins   = --prefix=${PREFIX}
+CONFIG-mythplugins  += --enable-all 
+CONFIG-mythplugins  += --compile-type=debug
+CONFIG-mythplugins  += ${CONFIG-mythtvplugins-${HOST}}
+
+mythtv/mythtv myththemes mythtv/mythplugins:
+	(cd $@ ; ./configure ${CONFIG-$(notdir $@)})
+	${MAKE} ${THREADS-${HOST}} -C $@
+	sudo ${MAKE} -C $@ install
+
+backgrounds:
+	sudo rsync -avCt --delete backgrounds/ ${PREFIX}/share/mythtv/themes/Arclight/Backgrounds/
+
+nuvexport:
+	sudo ${MAKE} -C $@ install
+
+mythweb:
+	sudo rsync -avCt mythweb/ /var/www/mythweb/
+	sudo chown -R www-data.www-data /var/www/mythweb/
+	(cd /opt/mythtv ; sudo ln -sf ${BRANCH} mythweb)
+
+do-update:
+	(cd mythtv ; git pull)
+
+scripts:
+	sudo rsync -avCt scripts/ /usr/local/bin/
+
+# WARNING: disabling Python bindings; missing MySQLdb
+# WARNING: disabling Python bindings; missing lxml
+# WARNING: disabling Perl bindings; missing DBI
+# WARNING: disabling Perl bindings; missing Net::UPnP::QueryResponse
+# WARNING: disabling Perl bindings; missing Net::UPnP::ControlPoint
+# MythMusic requires FLAC.
+# MythMusic requires libcdaudio.
+# MythMusic requires CDDA Paranoia.
+# MythMusic requires taglib 1.5 or later.
+
+# Core and bindings
+DEBS  = python-mysqldb python-lxml libdbi-perl libdbd-mysql-perl 
+DEBS += libnet-upnp-perl mysql-server mysql-client libmysqlclient-dev
+DEBS += libxvidcore-dev libsdl-dev libxml2-dev
+# Mythmusic
+DEBS += libflac-dev libcdaudio-dev libcdparanoia-dev libtag1-dev 
+# Mythgallery
+DEBS += libexif-dev dcraw icc-profiles
+# Mythweather scripts
+DEBS += libdate-manip-perl libxml-simple-perl libimage-size-perl
+DEBS += libdatetime-format-iso8601-perl libsoap-lite-perl libxml-xpath-perl
+# HardwareProfile
+DEBS += hal python-urlgrabber
+# Mythnetvision
+DEBS += python-oauth python-pycurl perlmagick
+# JAMU
+DEBS += python-imaging python-imdbpy
+# nuvexport
+DEBS += libid3-3.8.3-dev
+# Doxygen
+DEBS += doxygen
+# mythffmpegg
+DEBS += libx264-dev 
+
+apt-get:	force
+	sudo apt-get build-dep mythtv
+	sudo apt-get install ${DEBS}
