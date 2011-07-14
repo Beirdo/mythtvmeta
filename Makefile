@@ -9,3 +9,4 @@ TARGETS += mythtv/mythtv mythtv/mythplugins myththemes
 ${TARGETS}:
 	gmake -f Makefile.gmake $@ ${MAKEOPTS}
 
+.PHONY: ${TARGETS}

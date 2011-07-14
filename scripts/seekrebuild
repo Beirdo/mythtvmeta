@@ -1,0 +1,19 @@
+#! /bin/bash
+
+BRANCH=$1
+CHANID=$2
+STARTTIME=$3
+OUTFILE=$4
+
+mysql --user=mythtv --password=mythtv mythconverg > ${OUTFILE}.1 << EOF
+SELECT * FROM recordedmarkup WHERE chanid = ${CHANID} AND starttime = "${STARTTIME}";
+SELECT * FROM recordedseek WHERE chanid = ${CHANID} AND starttime = "${STARTTIME}";
+EOF
+
+myth ${BRANCH} mythcommflag --force --rebuild --chanid ${CHANID} --starttime ${STARTTIME}
+
+mysql --user=mythtv --password=mythtv mythconverg > ${OUTFILE}.2 << EOF
+SELECT * FROM recordedmarkup WHERE chanid = ${CHANID} AND starttime = "${STARTTIME}";
+SELECT * FROM recordedseek WHERE chanid = ${CHANID} AND starttime = "${STARTTIME}";
+EOF
+

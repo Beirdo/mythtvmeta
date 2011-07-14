@@ -1,0 +1,4 @@
+#! /bin/bash
+source /usr/local/bin/myth.inc
+get_prefix $*
+/usr/local/bin/nuvinfo ${ARGS} 
