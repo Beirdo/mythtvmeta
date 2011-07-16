@@ -15,13 +15,31 @@ my %hdpvrs = ( 32 => "GHUCYEL8" );
 my $Myth = new MythTV();
 
 # $0 cardid chanid starttime
-my ($cardid, $chanid, $starttime) = @ARGV;
+my ($cardid, $chanid, $starttime, $cancel) = @ARGV;
 
 die "You must provide cardid, chanid, starttime!\n"
    if (!$cardid || !$chanid || !$starttime);
 
 my $recording = undef;
 my $delay = 30;
+my $runningfile = "/tmp/$cardid-$chanid-$starttime.running";
+my $cancelfile  = "/tmp/$cardid-$chanid-$starttime.cancel";
+
+if ($cancel = "cancel" && -f $runningfile)
+{
+    touch($cancelfile);
+    exit 0;
+}
+
+touch($runningfile);
+
+# Give the HDPVR time to start capturing
+my $count = 0;
+while ($count < 20) {
+    cancel() if (-f $cancelfile);
+    $count++;
+    sleep 1;
+}
 
 while ((!$recording || !(exists $recording->{'local_path'}) || 
         !(-f $recording->{'local_path'})) && $delay )
@@ -31,7 +49,11 @@ while ((!$recording || !(exists $recording->{'local_path'}) ||
     if (!$recording || !(exists $recording->{'local_path'}) || 
         !(-f $recording->{'local_path'}) )
     {
+        if($recording) {
+            print $recording;
+        }
         sleep 5;
+        cancel() if (-f $cancelfile);
         $delay -= 5;
         if (!$delay) {
             no_recording($cardid, $chanid, $starttime);
@@ -60,16 +82,34 @@ if (-f $recording->{'local_path'})
         }
 
         sleep 10;
+        cancel() if (-f $cancelfile);
         $delay--;
     }
 
     # #@$$@%ing zero byte file!
     zero_byte($cardid, $chanid, $starttime);
+    unlink $runningfile;
     exit(1);
 }
 
+unlink $runningfile;
 exit 0;
+    
+sub touch
+{
+    my $file = shift;
 
+    open FH, ">", $file;
+    print FH "\n";
+    close FH;
+}
+
+sub cancel
+{
+    unlink $runningfile;
+    unlink $cancelfile;
+    exit 0;
+}
 
 sub no_recording
 {
