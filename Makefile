@@ -1,4 +1,4 @@
-DOTARGETS = all clean patch-clean patch-remove update
+DOTARGETS = all clean patch-clean patch-remove update apt-get
 
 ${DOTARGETS}:
 	gmake -f Makefile.gmake do-$@ ${MAKEOPTS}

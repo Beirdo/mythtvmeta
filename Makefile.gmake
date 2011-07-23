@@ -127,6 +127,6 @@ DEBS += doxygen
 # mythffmpegg
 DEBS += libx264-dev 
 
-apt-get:	force
+do-apt-get:	force
 	sudo apt-get build-dep mythtv
 	sudo apt-get install ${DEBS}
