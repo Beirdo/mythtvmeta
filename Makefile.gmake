@@ -3,16 +3,18 @@
 
 HOST=${shell hostname | sed -e 's/\..*$$//'}
 
-SUBDIRS-mythfe = myththemes
-SUBDIRS-devel  = myththemes
-SUBDIRS-fitpc  = myththemes
+SUBDIRS-mythfe  = myththemes
+SUBDIRS-devel   = myththemes
+SUBDIRS-devel64 = myththemes
+SUBDIRS-fitpc   = myththemes
 
 SUBDIRS  = mythtv/mythtv mythtv/mythplugins
 SUBDIRS += ${SUBDIRS-${HOST}}
 
-EXTRA-mythfe = backgrounds
-EXTRA-devel  = backgrounds
-EXTRA-fitpc  = backgrounds
+EXTRA-mythfe  = backgrounds
+EXTRA-devel   = backgrounds
+EXTRA-devel64 = backgrounds
+EXTRA-fitpc   = backgrounds
 EXTRA = ${EXTRA-${HOST}}
 
 do-all:	${SUBDIRS} ${EXTRA}
@@ -35,12 +37,16 @@ THREADS-mythbe	             = -j 9
 THREADS-mythfe	             = -j 3
 THREADS-freebsd	             = -j 3
 THREADS-devel	             = -j 2
+THREADS-devel64 	     = -j 3
 
 CONFIG-mythtv-mythfe         = --enable-libmp3lame --enable-libxvid 
 CONFIG-mythtv-mythfe        += --enable-libx264
 
 CONFIG-mythtv-mythbe         = --enable-libmp3lame --enable-libxvid 
 CONFIG-mythtv-mythbe        += --enable-libx264
+
+CONFIG-mythtv-devel64        = --enable-libmp3lame --enable-libxvid 
+CONFIG-mythtv-devel64       += --enable-libx264
 
 CONFIG-mythtv-fitpc          = --enable-vaapi
 
