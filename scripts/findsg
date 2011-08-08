@@ -1,0 +1,12 @@
+#! /bin/bash
+# vim:ts=4:sw=4:ai:et:si:sts=4
+
+DIRS="/opt/mythtv/video1 /opt/mythtv/video2 /opt/mythtv/video3"
+DIRS="${DIRS} /opt/mythtv/video4"
+
+FILE=$1
+
+for i in ${DIRS} ; do
+    find $i -name ${FILE} || exit 0
+done
+exit 1

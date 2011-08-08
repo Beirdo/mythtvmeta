@@ -1,0 +1,140 @@
+#! /usr/bin/perl
+# vim:ts=4:sw=4:ai:et:si:sts=4
+
+use strict;
+use warnings;
+
+use File::Copy;
+
+$|++;
+
+my @dirs = ( "/opt/mythtv/video1", "/opt/mythtv/video2", "/opt/mythtv/video3",
+             "/opt/mythtv/video4" );
+my $hash = {};
+
+sub build_hash {
+    foreach my $dir (@dirs) {
+        my $dir2 = $dir;
+        $dir2 =~ s/\//[\/]/g;
+        my $sgre  = qr{$dir2};
+
+        open FH, "find $dir -type f |";
+        while (<FH>) {
+            my $line = $_;
+            chomp $line;
+            my ($subdir, $file) = ($line =~ /^$sgre[\/]([^\/]*+)[\/](.*)/);
+            next if not defined $subdir;
+
+            my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
+                $atime,$mtime,$ctime,$blksize,$blocks) = stat($line);
+            $hash->{$subdir} = {} if not exists $hash->{$subdir};
+            $hash->{$subdir}->{$dir} = {}
+                if not exists $hash->{$subdir}->{$dir};
+            $hash->{$subdir}->{$dir}->{'.total'} = 0
+                if not exists $hash->{$subdir}->{$dir}->{'.total'};
+            $hash->{$subdir}->{$dir}->{$file} = $size;
+            $hash->{$subdir}->{$dir}->{'.total'} += $size;
+        }
+        close FH;
+    }
+}
+
+sub move_recording {
+    my ($file, $srcdir, $destdir, $sgdir) = @_;
+    my $srcfile = $file;
+    $srcfile =~ s/\//[\/]/g;
+    my $re = qr{$srcfile};
+
+    move_file($file, $srcdir, $destdir, $sgdir);
+
+    foreach my $i (grep(/^$re/, keys %{$hash->{$sgdir}->{$srcdir}})) {
+        move_file($i, $srcdir, $destdir, $sgdir);
+    }
+}
+
+sub move_file {
+    my ($file, $srcdir, $destdir, $sgdir) = @_;
+
+    my $default = $hash->{$sgdir};
+    my $size = $default->{$srcdir}->{$file};
+
+    print "Moving $srcdir/$sgdir/$file\n    -> $destdir/$sgdir/$file\n";
+    print "Size   " . filesize($size);
+    move("$srcdir/$sgdir/$file", "$destdir/$sgdir/$file");
+
+    $default->{$destdir}->{$file}     = $size;
+    delete $default->{$srcdir}->{$file};
+    $default->{$destdir}->{'.total'} += $size;
+    $default->{$srcdir}->{'.total'}  -= $size;
+    $default->{$destdir}->{'.diff'}  -= $size;
+    $default->{$srcdir}->{'.diff'}   += $size;
+    print ", New diff: " . filesize($default->{$destdir}->{'.diff'}) . "\n";
+}
+
+sub filesize {
+    my ($raw) = @_;
+    my @prefix = ( '', 'k', 'M', 'G', 'T', 'P' );
+    my $sign = ($raw < 0 ? '-' : '');
+    $raw = 0 - $raw if $raw < 0;
+    my $scaled = $raw;
+    my $index = 0;
+
+    while ($scaled > 1024.0) {
+        $scaled /= 1024.0;
+        $index++;
+    }
+
+    return sprintf("%s%.3f%sB", $sign, $scaled, $prefix[$index]);
+}
+
+
+build_hash();
+
+my $default = $hash->{'default'};
+my $accum = 0;
+my $count = 0;
+
+foreach my $i (keys %{$default}) {
+    $accum += $default->{$i}->{'.total'};
+    $count++;
+}
+my $avg = int ($accum / $count);
+
+print "avg: " . filesize($avg) . "\n";
+foreach my $i (sort keys %{$default}) {
+    $default->{$i}->{'.diff'} = $avg - $default->{$i}->{'.total'};
+    print "$i: " . filesize($default->{$i}->{'.diff'}) . "\n";
+}
+
+sleep 15;
+
+FIND_DIR:
+foreach my $i (sort {$default->{$b}->{'.diff'} <=> $default->{$a}->{'.diff'}}
+               keys %{$default}) {
+    my $diff = $default->{$i}->{'.diff'};
+    while ($diff > 100000000) {
+        # Find a file from the FS with the smallest (most negative) diff
+        # that is the largest that fits within our diff
+        my @sdiff = ();
+        foreach my $j
+            (sort {$default->{$a}->{'.diff'} <=> $default->{$b}->{'.diff'}}
+             keys %{$default}) {
+            next if $j eq $i;
+            push @sdiff, $j;
+        }
+
+        FIND_FILE: for my $j (@sdiff) {
+            my @sfile = sort {$default->{$j}->{$b} <=> $default->{$j}->{$a}}
+                 keys %{$default->{$j}};
+
+            foreach my $k (@sfile) {
+                next if $default->{$j}->{$k} > $diff;
+                next FIND_DIR if $default->{$j}->{$k} < 100000000;
+                move_recording($k, $j, $i, 'default');
+                last FIND_FILE;
+            }
+        }
+        $diff = $default->{$i}->{'.diff'};
+    }
+}
+exit 0;
