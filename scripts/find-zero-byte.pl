@@ -3,7 +3,7 @@
 use warnings;
 use strict;
 
-use lib '/opt/mythtv/new-logging/share/perl/5.10.1';
+use lib '/opt/mythtv/master/share/perl/5.10.1';
 
 use MythTV;
 
