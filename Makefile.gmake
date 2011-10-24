@@ -38,6 +38,7 @@ THREADS-mythfe	             = -j 3
 THREADS-freebsd	             = -j 3
 THREADS-devel	             = -j 2
 THREADS-devel64 	     = -j 3
+THREADS-o745	 	     = -j 3
 
 CONFIG-mythtv-mythfe         = --enable-libmp3lame --enable-libxvid 
 CONFIG-mythtv-mythfe        += --enable-libx264
@@ -47,6 +48,9 @@ CONFIG-mythtv-mythbe        += --enable-libx264
 
 CONFIG-mythtv-devel64        = --enable-libmp3lame --enable-libxvid 
 CONFIG-mythtv-devel64       += --enable-libx264
+
+#CONFIG-mythtv-o745           = --enable-libmp3lame --enable-libxvid 
+#CONFIG-mythtv-o745          += --enable-libx264
 
 CONFIG-mythtv-fitpc          = --enable-vaapi
 
