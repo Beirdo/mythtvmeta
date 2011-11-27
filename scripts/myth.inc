@@ -76,6 +76,11 @@ function get_prefix2 () {
         LOGPATH=/opt/mythtv/logs/${BRANCH}
     fi
 
+    if [ .$1. = .--nox. ] ; then
+        NOX=1
+        shift
+    fi
+
     PROGNAME=`echo $1 | sed -e 's/^.*\///'`
     if [ .${PROGNAME}. == .. ] ; then
 	echo "Usage: myth branch program args"
@@ -114,7 +119,7 @@ function get_prefix2 () {
     export LOG
     export VALLOG
 
-    if [ .${DISPLAY}. = .. ] ; then
+    if [ .${NOX}. = .. -a .${DISPLAY}. = .. ] ; then
         DISPLAY=:0.0
         export DISPLAY
     fi

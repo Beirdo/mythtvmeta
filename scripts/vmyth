@@ -1,0 +1,5 @@
+#! /bin/bash
+source /usr/local/bin/myth.inc
+get_prefix2 $*
+VALOPTS="--log-file=${VALLOG} --track-origins=yes -v --time-stamp=yes --read-var-info=yes --leak-check=yes"
+valgrind ${VALOPTS} ${PROGNAME} -l ${LOGPATH} ${ARGS}
