@@ -107,6 +107,7 @@ function get_prefix2 () {
     LC_ALL=en_US.UTF-8
     QT_FATAL_WARNINGS=1
     MALLOC_CHECK_=1
+    __GL_NO_DSO_FINALIZER=1
 
     export PYTHONPATH
     export PERL5LIB
@@ -115,6 +116,7 @@ function get_prefix2 () {
     export LC_ALL
     export QT_FATAL_WARNINGS
     export MALLOC_CHECK_
+    export __GL_NO_DSO_FINALIZER
 
     export PREFIX
     export ARGS
