@@ -87,7 +87,7 @@ mythtv/mythtv myththemes mythtv/mythplugins:
 	sudo ${MAKE} -C $@ install
 
 backgrounds:
-	sudo rsync -avCt --delete backgrounds/ ${HOME}/.mythtv/themes/Arclight/Backgrounds/
+	rsync -avCt --delete backgrounds/ ${HOME}/.mythtv/themes/Arclight/Backgrounds/
 
 nuvexport:
 	sudo ${MAKE} -C $@ install
