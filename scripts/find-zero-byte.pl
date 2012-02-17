@@ -3,6 +3,7 @@
 use warnings;
 use strict;
 
+# Adjust this to $PREFIX/share/perl/5.10.1 (or whatever perl version)
 use lib '/opt/mythtv/master/share/perl/5.10.1';
 
 use MythTV;
@@ -25,7 +26,7 @@ my $delay = 30;
 my $runningfile = "/tmp/$cardid-$chanid-$starttime.running";
 my $cancelfile  = "/tmp/$cardid-$chanid-$starttime.cancel";
 
-if (defined $canced && $cancel = "cancel" && -f $runningfile)
+if ((defined $cancel) && ($cancel eq "cancel") && (-f $runningfile))
 {
     touch($cancelfile);
     exit 0;
@@ -94,7 +95,7 @@ if (-f $recording->{'local_path'})
 
 unlink $runningfile;
 exit 0;
-    
+
 sub touch
 {
     my $file = shift;
