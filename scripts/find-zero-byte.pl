@@ -26,9 +26,9 @@ my $delay = 30;
 my $runningfile = "/tmp/$cardid-$chanid-$starttime.running";
 my $cancelfile  = "/tmp/$cardid-$chanid-$starttime.cancel";
 
-if ((defined $cancel) && ($cancel eq "cancel") && (-f $runningfile))
+if ((defined $cancel) && ($cancel eq "cancel"))
 {
-    touch($cancelfile);
+    touch($cancelfile) if -f $runningfile;
     exit 0;
 }
 
