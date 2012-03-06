@@ -1,4 +1,4 @@
 #! /bin/bash
 source /usr/local/bin/myth.inc
 get_prefix $*
-${PREFIX}/bin/mythmediaserver -l ${LOGPATH} ${ARGS}
+${PREFIX}/bin/mythmediaserver --logpath ${LOGPATH} ${ARGS}

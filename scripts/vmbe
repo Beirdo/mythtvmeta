@@ -2,4 +2,4 @@
 source /usr/local/bin/myth.inc
 get_prefix $*
 VALOPTS="--log-file=${VALLOG} --track-origins=yes -v --time-stamp=yes --read-var-info=yes"
-valgrind ${VALOPTS} ${PREFIX}/bin/mythbackend -l ${LOGPATH} ${ARGS}
+valgrind ${VALOPTS} ${PREFIX}/bin/mythbackend --logpath ${LOGPATH} ${ARGS}

@@ -2,4 +2,4 @@
 source /usr/local/bin/myth.inc
 get_prefix $*
 
-${PREFIX}/bin/mythfilldatabase -l ${LOGPATH} ${ARGS} 
+${PREFIX}/bin/mythfilldatabase --logpath ${LOGPATH} ${ARGS} 

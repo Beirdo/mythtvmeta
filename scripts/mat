@@ -1,4 +1,4 @@
 #! /bin/bash
 source /usr/local/bin/myth.inc
 get_prefix $*
-${PREFIX}/bin/mythavtest -l ${LOGPATH} ${ARGS}
+${PREFIX}/bin/mythavtest --logpath ${LOGPATH} ${ARGS}

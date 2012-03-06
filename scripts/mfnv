@@ -1,4 +1,4 @@
 #! /bin/bash
 source /usr/local/bin/myth.inc
 get_prefix $*
-${PREFIX}/bin/mythfillnetvision -l ${LOGPATH} ${ARGS}
+${PREFIX}/bin/mythfillnetvision --logpath ${LOGPATH} ${ARGS}
