@@ -37,7 +37,7 @@ touch($runningfile);
 # Give the HDPVR time to start capturing
 my $count = 0;
 while ($count < 20) {
-    cancel() if (-f $cancelfile);
+    cleanup(0) if (-f $cancelfile);
     $count++;
     sleep 1;
 }
@@ -54,11 +54,11 @@ while ((!$recording || !(exists $recording->{'local_path'}) ||
             print $recording;
         }
         sleep 5;
-        cancel() if (-f $cancelfile);
+        cleanup(0) if (-f $cancelfile);
         $delay -= 5;
         if (!$delay) {
             no_recording($cardid, $chanid, $starttime);
-            exit(1);
+            cleanup(1);
         }
     }
 }
@@ -79,22 +79,20 @@ if (-f $recording->{'local_path'})
 
         if ($size != 0)
         {
-            exit(0);
+            cleanup(0);
         }
 
         sleep 10;
-        cancel() if (-f $cancelfile);
+        cleanup(0) if (-f $cancelfile);
         $delay--;
     }
 
     # #@$$@%ing zero byte file!
     zero_byte($cardid, $chanid, $starttime);
-    unlink $runningfile;
-    exit(1);
+    cleanup(1);
 }
 
-unlink $runningfile;
-exit 0;
+cleanup(0);
 
 sub touch
 {
@@ -105,11 +103,12 @@ sub touch
     close FH;
 }
 
-sub cancel
+sub cleanup
 {
-    unlink $runningfile;
-    unlink $cancelfile;
-    exit 0;
+    my $exitcode = shift;
+    unlink $runningfile if -f $runningfile;
+    unlink $cancelfile  if -f $cancelfile;
+    exit $exitcode;
 }
 
 sub no_recording
