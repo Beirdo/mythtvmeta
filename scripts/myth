@@ -1,4 +1,4 @@
 #! /bin/bash
 source /usr/local/bin/myth.inc
 get_prefix2 $*
-${PROGNAME} -l ${LOGPATH} ${ARGS}
+${PROGNAME} --logpath ${LOGPATH} ${ARGS}
