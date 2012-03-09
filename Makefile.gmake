@@ -118,7 +118,7 @@ DEBS  = python-mysqldb python-lxml libdbi-perl libdbd-mysql-perl
 DEBS += libnet-upnp-perl mysql-server mysql-client libmysqlclient-dev
 DEBS += libxvidcore-dev libsdl-dev libxml2-dev dbus udisks
 # Mythmusic
-DEBS += libflac-dev libcdaudio-dev libcdparanoia-dev libtag1-dev 
+DEBS += libflac-dev libtag1-dev libcdio-dev libcdio-paranoia-dev
 # Mythgallery
 DEBS += libexif-dev dcraw icc-profiles
 # Mythweather scripts
