@@ -1,20 +1,14 @@
-.PHONY:	mythtv/mythtv mythtv/mythplugins myththemes nuvexport mythweb
+.PHONY:	mythtv/mythtv mythtv/mythplugins nuvexport mythweb
 .PHONY: force backgrounds scripts
 
 HOST=${shell hostname | sed -e 's/\..*$$//'}
 
-SUBDIRS-mythfe  = myththemes
-SUBDIRS-devel   = myththemes
-SUBDIRS-devel64 = myththemes
-SUBDIRS-fitpc   = myththemes
+#SUBDIRS-fitpc   = myththemes
 
 SUBDIRS  = mythtv/mythtv mythtv/mythplugins
 SUBDIRS += ${SUBDIRS-${HOST}}
 
-EXTRA-mythfe  = backgrounds
-EXTRA-devel   = backgrounds
-EXTRA-devel64 = backgrounds
-EXTRA-fitpc   = backgrounds
+#EXTRA-mythfe  = backgrounds
 EXTRA = ${EXTRA-${HOST}}
 
 do-all:	${SUBDIRS} ${EXTRA}
@@ -73,15 +67,12 @@ CONFIG-mythtv       += --enable-symbol-visibility
 CONFIG-mythtv       += --perl-config-opts="${PERLOPTS}"
 CONFIG-mythtv       += ${CONFIG-mythtv-${HOST}}
 
-CONFIG-myththemes    = --prefix=${PREFIX}
-CONFIG-myththemes   += --compile-type=debug
-
 CONFIG-mythplugins   = --prefix=${PREFIX}
 CONFIG-mythplugins  += --enable-all 
 CONFIG-mythplugins  += --compile-type=debug
 CONFIG-mythplugins  += ${CONFIG-mythtvplugins-${HOST}}
 
-mythtv/mythtv myththemes mythtv/mythplugins:
+mythtv/mythtv mythtv/mythplugins:
 	(cd $@ ; ./configure ${CONFIG-$(notdir $@)})
 	${MAKE} ${THREADS-${HOST}} -C $@
 	sudo ${MAKE} -C $@ install
