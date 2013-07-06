@@ -108,6 +108,7 @@ scripts:
 DEBS  = python-mysqldb python-lxml libdbi-perl libdbd-mysql-perl 
 DEBS += libnet-upnp-perl mysql-server mysql-client libmysqlclient-dev
 DEBS += libxvidcore-dev libsdl-dev libxml2-dev dbus udisks libicu48
+DEBS += uuid-dev
 # Mythmusic
 DEBS += libflac-dev libtag1-dev libcdio-dev libcdio-paranoia-dev
 # Mythgallery

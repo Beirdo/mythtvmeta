@@ -4,3 +4,5 @@ mythweb/
 nuvexport/
 extras/
 packaging/
+buildbot-config/
+gitolite-admin/
